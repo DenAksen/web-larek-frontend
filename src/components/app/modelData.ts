@@ -216,6 +216,8 @@ export class AppModel extends Model<{
 		// Проверка телефона
 		if (!currentOrder.phone || currentOrder.phone.trim().length < 10) {
 			errors.phone = 'Укажите корректный номер телефона (не менее 10 символов)';
+		} else if (!/^[\d+]+$/.test(currentOrder.phone)) {
+			errors.phone = 'Номер телефона должен содержать только цифры и символ +';
 		}
 
 		this.formErrors = errors;
@@ -248,7 +250,7 @@ export class AppModel extends Model<{
 
 		return addressValid && contactValid;
 	}
-	
+
 	resetOrder(): void {
 		this.order = {
 			payment: '',

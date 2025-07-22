@@ -174,7 +174,6 @@ private handleCardSelect(item: IProduct): void {
         onClick: () => {
             this.appData.toggleBasketItem(item.id);
             this.events.emit(AppEvents.BasketChanged);
-            // Обновляем только кнопку в текущей карточке
             card.updateButton(this.appData.isInBasket(item.id));
         },
     });

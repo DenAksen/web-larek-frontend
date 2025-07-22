@@ -4,10 +4,7 @@ import { ensureElement } from '../../utils/utils';
 import { IFormState, IOrderAddressFormState, PaymentMethod } from '../../types';
 
 export class OrderAddressForm extends Form<IOrderAddressFormState> {
-	// Кнопка выбора оплаты картой
 	private readonly _cardButton: HTMLButtonElement;
-
-	// Кнопка выбора оплаты наличными
 	private readonly _cashButton: HTMLButtonElement;
 
 	// Список обработчиков событий для последующей очистки
@@ -210,7 +207,6 @@ export class OrderAddressForm extends Form<IOrderAddressFormState> {
 		if (state.errors !== undefined) {
 			this.errors = state.errors.join(', ');
 		}
-
 		return this.container;
 	}
 }

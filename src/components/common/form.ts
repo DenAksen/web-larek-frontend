@@ -51,6 +51,7 @@ export class Form<T extends FormFields> extends Component<IFormState> {
 	// Устанавливает состояние доступности кнопки отправки формы
 	set valid(value: boolean) {
 		this._submit.disabled = !value;
+		value ? this._errors.style.display = 'none': this._errors.style.display = 'block';
 	}
 
 	// Устанавливает текст сообщения об ошибках
