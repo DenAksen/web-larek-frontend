@@ -39,11 +39,11 @@
 		</div>
 	</div>
 
-	<div class="modal modal_active">
+	<div class="modal">
 		<div class="modal__container">
 			<button class="modal__close" aria-label="закрыть"></button>
 			<div class="modal__content">
-				<div class="card card_full">
+				<div class="card card_full" id="card_full">
 					<img class="card__image" src="<%=require('../images/Subtract.svg')%>" alt="" />
 					<div class="card__column">
 						<span class="card__category card__category_other">другое</span>
@@ -202,7 +202,7 @@
 			<h2 class="modal__title">Корзина</h2>
 			<ul class="basket__list"></ul>
 			<div class="modal__actions">
-				<button class="button basket__button">Оформить</button>
+				<button class="button basket__button" disabled>Оформить</button>
 				<span class="basket__price">0 синапсов</span>
 			</div>
 		</div>
