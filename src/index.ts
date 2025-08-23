@@ -6,13 +6,14 @@ import { AppApi } from './components/model/appApi';
 import { Page } from './components/view/page';
 import { AppModel } from './components/model/appModel';
 import { EventEmitter } from './components/base/events';
-import { Card } from './components/view/card';
+import { CardCatalog } from './components/view/cardCatalog';
 
 import { Modal } from './components/view/modal';
 import { Basket } from './components/view/basket';
 import { FormOrder } from './components/view/formOrder';
 import { FormContact } from './components/view/formAddress';
 import { OrderSuccess } from './components/view/orderSuccess';
+import { CardPreview } from './components/view/cardPreview';
 
 const api = new AppApi(API_URL, CDN_URL);
 const event = new EventEmitter();
@@ -23,6 +24,8 @@ const basket = new Basket(event);
 const formOrder = new FormOrder(event);
 const formContact = new FormContact(event);
 const orderSuccess = new OrderSuccess(event);
+const cardCatalog = new CardCatalog(event);
+const cardPreview = new CardPreview(event);
 
 
 async function init() {
@@ -32,8 +35,7 @@ async function init() {
 	page.render(
 		model.basketCount(),
 		model.itemList.map((item) => {
-			const card = new Card(event);
-			return card.renderCatalogCardItem(item);
+			return cardCatalog.renderCatalogCardItem(item);
 		})
 	);
 }
@@ -43,18 +45,18 @@ event.on(AppEvents.BasketOpen, (): void => {
 	modal.render(basket.render(model.getBasketItems()));
 });
 
-event.on(AppEvents.CardSelect, (payload: { id: string; cardInstance: Card }) => {
-	const { id, cardInstance } = payload;
+event.on(AppEvents.CardSelect, (payload: { id: string}) => {
+	const { id } = payload;
 	modal.render(
-		payload.cardInstance.renderPreviewCardItem(
+		cardPreview.renderPreviewCardItem(
 			model.getItemById(payload.id),
 			model.avilabilityInBasket(payload.id)
 		)
 	);
 });
 
-event.on(AppEvents.CardAddBasket, (payload: { id: string; cardInstance: Card }) => {
-	const { id, cardInstance } = payload;
+event.on(AppEvents.CardAddBasket, (payload: { id: string}) => {
+	const { id} = payload;
 	model.avilabilityInBasket(payload.id)
 		? model.basketRemove(payload.id)
 		: (model.basketAdd = payload.id);
