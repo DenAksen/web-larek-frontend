@@ -1,11 +1,26 @@
 import { AppEvents, IOrder, IProduct, OrderPayment } from '../../types/index';
 import { IEvents } from '../base/events';
 
+interface IValidateFormCheck {
+	payment: boolean;
+	address: boolean;
+	email: boolean;
+	phone: boolean;
+}
+
 export class AppModel {
 	private _itemList: IProduct[] = [];
 	private _basketList: string[] = [];
 	private _totalPrice: number = 0;
+	static emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+	static phoneRegex = /^[\+]?[0-9\s\-\(\)]{10,20}$/;
 	order: Partial<IOrder> = {};
+	validateFormCheck: Partial<IValidateFormCheck> = {
+		payment: false,
+		address: false,
+		email: false,
+		phone: false,
+	};
 
 	constructor(protected events: IEvents) {}
 
@@ -15,6 +30,11 @@ export class AppModel {
 
 	set totalPrice(price: number) {
 		this._totalPrice = price;
+	}
+
+	set orderPaymentType(value: OrderPayment) {
+		this.order.payment = value;
+		this.validateFormCheck.payment = true;
 	}
 
 	basketCount(): number {
@@ -76,5 +96,93 @@ export class AppModel {
 		this.order.total = this._totalPrice;
 		this.order.items = this._basketList;
 		return this.order as IOrder;
+	}
+
+	clearValidateFormCheck(): void {
+		this.validateFormCheck = {
+			payment: false,
+			address: false,
+			email: false,
+			phone: false,
+		};
+	}
+
+	validateCheckFormOrder(): boolean {
+		if (this.validateFormCheck.payment && this.validateFormCheck.address) {
+			this.events.emit(AppEvents.FormOrderIsValid);
+			return true;
+		} else {
+			this.events.emit(AppEvents.FormOrderIsNoValid);
+			return false;
+		}
+	}
+
+	validateFormOrder(valueAddress: string): string {
+		const isPaymentSelected = this.validateFormCheck.payment;
+		const isAddressValid = valueAddress.trim().length >= 10;
+
+		let errorMessage = '';
+
+		if (!isAddressValid) {
+			this.validateFormCheck.address = false;
+			errorMessage = 'Адрес должен содержать не менее 10 символов. ';
+			return errorMessage;
+		} else {
+			this.order.address = valueAddress;
+			this.validateFormCheck.address = true;
+		}
+
+		if (!isPaymentSelected) {
+			errorMessage = 'Выберите способ оплаты.';
+			return errorMessage;
+		}
+
+		return errorMessage;
+	}
+
+	validateContact(valueEmail: string, valuePhone: string) {
+		let errorMessage = '';
+
+		if (valueEmail) {
+			const email = valueEmail.trim();
+			const isValidRegExpEmail = AppModel.emailRegex.test(email);
+			const isValidLengthEmail = valueEmail.length > 10;
+
+			if (!isValidLengthEmail) {
+				this.validateFormCheck.email = false;
+				errorMessage = 'Email должен состоять не менее чем из 10 символов';
+				return errorMessage;
+			} else if (!isValidRegExpEmail) {
+				this.validateFormCheck.email = false;
+				errorMessage = 'Введите корректный email';
+				return errorMessage;
+			} else {
+				this.validateFormCheck.email = true;
+				this.order.email = valueEmail;
+			}
+		}
+
+		if (valuePhone) {
+			const phone = valuePhone.trim();
+			const isValidRegExpPhone = AppModel.phoneRegex.test(phone);
+			if (!isValidRegExpPhone) {
+				this.validateFormCheck.phone = false;
+				errorMessage = 'Введите корректный номер';
+				return errorMessage;
+			} else {
+				this.validateFormCheck.phone = true;
+				this.order.phone = valuePhone;
+			}
+		} else {
+			errorMessage = 'Введите номер телефона';
+			this.validateFormCheck.phone = false;
+			return errorMessage;
+		}
+
+		this.validateFormCheck.email && this.validateFormCheck.phone
+			? this.events.emit(AppEvents.FormContactIsValid)
+			: this.events.emit(AppEvents.FormContactIsNoValid);
+
+		return '';
 	}
 }

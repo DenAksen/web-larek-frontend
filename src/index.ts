@@ -1,7 +1,7 @@
 import './scss/styles.scss';
 
 import { API_URL, CDN_URL, settings } from './utils/constants';
-import { AppEvents, IOrder, IProduct } from './types';
+import { AppEvents, IOrder, IProduct, OrderPayment } from './types';
 import { AppApi } from './components/model/appApi';
 import { Page } from './components/view/page';
 import { AppModel } from './components/model/appModel';
@@ -82,12 +82,11 @@ event.on(AppEvents.BasketSubmit, () => {
 });
 
 event.on(AppEvents.FormOrderSubmit, () => {
-	model.addToOrderData(formOrder.getInputData());
 	modal.render(formContact.render());
+	console.log(model.order) //Delete
 });
 
 event.on(AppEvents.FormContactSubmit, async () => {
-	model.addToOrderData(formContact.getInputData());
 
 	try {
 		// Отправляем заказ
@@ -117,4 +116,34 @@ event.on(AppEvents.OrderSuccessSubmit, () => {
 	modal.close();
 	model.clearBasket();
 	basket.clearBasketItems();
+});
+
+event.on(AppEvents.ButtonChoosing, (payload: {payment: OrderPayment}) => {
+	const { payment } = payload;
+	model.orderPaymentType = payload.payment;
+	formOrder.handleButtonPayChangeActive(payload.payment);
+})
+
+event.on(AppEvents.FormOrderIsValid, () => {
+	formOrder.buttonSubmitChangeState(false);
+})
+
+event.on(AppEvents.FormOrderIsNoValid, () => {
+	formOrder.buttonSubmitChangeState(true);
+})
+
+event.on(AppEvents.FormOrderInputAddressToValidation, (payload: {value: string}) => {
+	const { value } = payload;
+	formOrder.errorValidationShow = model.validateFormOrder(payload.value);
+	model.validateCheckFormOrder();
+});
+
+event.on(AppEvents.ModalClose, () => {
+	model.clearValidateFormCheck();
+})
+
+event.on(AppEvents.FormContactInputsToValidation, (payload: {valueInputEmail: string, valueInputPhone: string}) => {
+	const { valueInputEmail, valueInputPhone} = payload;
+	formContact.errorValidationShow = model.validateContact(payload.valueInputEmail, payload.valueInputPhone);
+	formContact.toggleValidationStyle(model.validateFormCheck.email, model.validateFormCheck.phone);
 });

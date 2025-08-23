@@ -41,5 +41,12 @@ export enum AppEvents {
   FormContactSubmit = 'formContact:submit',
   OrderSuccessSubmit = 'orderSuccess:submit',
   ModalOpen = 'modal:open',
-  ModalClose = 'modal:close'
+  ModalClose = 'modal:close',
+  ButtonChoosing = 'form:buttonPayment-choosing',
+  FormOrderIsValid = 'valid:formOrder-isValid',
+  FormOrderIsNoValid = 'valid:formOrder-noValid',
+  FormOrderInputAddressToValidation = 'form:inputAddressValue-validation',
+  FormContactInputsToValidation = 'form:inputsValue-validation',
+  FormContactIsValid = 'valid:formOrder-isValid',
+  FormContactIsNoValid = 'valid:formOrder-noValid'
 }

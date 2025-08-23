@@ -18,7 +18,6 @@ export class FormOrder extends Form {
 	private buttonPayOffline: HTMLButtonElement;
 	protected inputAddress: HTMLInputElement;
 	protected paymentButtonContainer: HTMLElement;
-	private payType: PayMethod = undefined;
 
 	constructor(events: IEvents) {
 		super(events);
@@ -42,68 +41,56 @@ export class FormOrder extends Form {
 			this.formElement
 		);
 		this.inputAddress.minLength = 10;
-		this.inputAddress.addEventListener('input', () => this.validateForm());
-		this.inputAddress.addEventListener('blur', () => this.validateForm());
+		this.inputAddress.addEventListener('input', () =>
+			this.validateEmitInputAddress(this.inputAddress.value)
+		);
+		this.inputAddress.addEventListener('blur', () =>
+			this.validateEmitInputAddress(this.inputAddress.value)
+		);
 
 		this.buttonPayOnline = ensureElement<HTMLButtonElement>(
 			'button[name="card"]',
 			this.formElement
 		);
 		this.buttonPayOnline.addEventListener('click', () => {
-			this.handleButtonPayClick(this.buttonPayOnline);
+			this.events.emit(AppEvents.ButtonChoosing, {
+				payment: this.buttonPayOnline.getAttribute('name'),
+			});
 		});
 		this.buttonPayOffline = ensureElement<HTMLButtonElement>(
 			'button[name="cash"]',
 			this.formElement
 		);
-		this.buttonPayOffline.addEventListener('click', () => {
-			this.handleButtonPayClick(this.buttonPayOffline);
+		this.buttonPayOffline.addEventListener('click', (e: Event) => {
+			this.events.emit(AppEvents.ButtonChoosing, {
+				payment: this.buttonPayOffline.getAttribute('name'),
+			});
 		});
 	}
 
-	protected handleButtonPayClick(button: HTMLButtonElement): void {
+	handleButtonPayChangeActive(nameButton: string): void {
 		this.buttonPayOnline.classList.remove('button_alt-active');
 		this.buttonPayOffline.classList.remove('button_alt-active');
-		if (button.getAttribute('name') === 'card') {
+		if (nameButton === 'card') {
 			this.buttonPayOnline.classList.add('button_alt-active');
-			this.payType = 'card';
-		} else {
+		} else if (nameButton === 'cash') {
 			this.buttonPayOffline.classList.add('button_alt-active');
-			this.payType = 'cash';
+		} else {
+			throw new Error('Непредвиденный тип оплаты');
 		}
-		this.validateForm();
 	}
 
-	protected validateForm(): boolean {
-		const isPaymentSelected = this.payType !== undefined;
-		const isAddressValid = this.inputAddress.value.trim().length >= 10;
-
-		let errorMessage = '';
-
-		if (!isPaymentSelected) {
-			errorMessage = 'Выберите способ оплаты.';
-		}
-
-		if (!isAddressValid) {
-			errorMessage = 'Адрес должен содержать не менее 10 символов. ';
-		}
-
-		this.errorValidationShow = errorMessage.trim();
-
-		this.buttonSubmit.disabled = !(isPaymentSelected && isAddressValid);
-
-		return isPaymentSelected && isAddressValid;
+	buttonSubmitChangeState(disable: boolean): void {
+		this.buttonSubmit.disabled = disable;
 	}
 
-	getInputData(): IOrderAddress {
-		return {
-			payment: this.payType,
-			address: this.inputAddress.value,
-		};
+	private validateEmitInputAddress(valueInput: string): void {
+		this.events.emit(AppEvents.FormOrderInputAddressToValidation, {
+			value: valueInput,
+		});
 	}
 
 	clearForm(): void {
-		this.payType = undefined;
 		this.buttonPayOnline.classList.remove('button_alt-active');
 		this.buttonPayOffline.classList.remove('button_alt-active');
 		this.inputAddress.value = '';

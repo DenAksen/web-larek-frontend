@@ -49,7 +49,7 @@ export class FormContact extends Form {
 			this.formElement
 		);
 		this.inputEmail.addEventListener('input', () => {
-			this.validateEmail();
+			this.validateEmitInputs(this.inputEmail.value, this.inputPhone.value);
 		});
 
 		this.inputPhone = ensureElement<HTMLInputElement>(
@@ -57,77 +57,46 @@ export class FormContact extends Form {
 			this.formElement
 		);
 		this.inputPhone.addEventListener('input', () => {
-			this.validatePhone();
+			this.validateEmitInputs(this.inputEmail.value, this.inputPhone.value);
 		});
 	}
 
-	validateEmail() {
-		const email = this.inputEmail.value.trim();
-		const isValidRegExp = FormContact.emailRegex.test(email);
-		const isValidLength = this.inputEmail.value.length > 10;
-		let errorMessage = '';
-		this.formIsValidate.email = isValidRegExp && isValidLength;
+	private validateEmitInputs(
+		valueInputEmail: string,
+		valueInputPhone: string
+	): void {
+		this.events.emit(AppEvents.FormContactInputsToValidation, {
+			valueInputEmail,
+			valueInputPhone,
+		});
+	}
 
-		if (!isValidLength) {
-			errorMessage = 'Email должен состоять не менее чем из 10 символов';
-			this.inputEmail.style.outlineColor = '#ff0000ff';
-		} else if (!isValidRegExp) {
-			errorMessage = 'Введите корректный email';
-			this.inputEmail.style.outlineColor = '#ff0000ff';
+	toggleValidationStyle(emailCheck: boolean, phoneCheck: boolean): void {
+		if (!emailCheck) {
+			this.inputEmail.style.borderColor = '#ff0000ff';
 		} else {
-			this.inputEmail.style.outlineColor = '';
+			this.inputEmail.style.borderColor = '';
 		}
 
-		this.errorValidationShow = errorMessage.trim();
-		this.toggleButtonState();
+		if (!phoneCheck) {
+			this.inputPhone.style.borderColor = '#ff0000ff';
+		} else {
+			this.inputPhone.style.borderColor = '';
+		}
 
-		return isValidRegExp && isValidLength;
-	}
-
-	isAllFieldsTrue(): boolean {
-		return Object.values(this.formIsValidate).every((value) => value === true);
-	}
-
-	toggleButtonState(): void {
-		this.isAllFieldsTrue()
+		emailCheck && phoneCheck
 			? (this.buttonSubmit.disabled = false)
 			: (this.buttonSubmit.disabled = true);
 	}
 
-	validatePhone() {
-		const phone = this.inputPhone.value.trim();
-
-		if (!phone) {
-			this.errorValidationShow = 'Введите номер телефона';
-			this.inputPhone.style.outlineColor = '#ff0000ff';
-			return false;
-		}
-
-		const isValidRegExp = FormContact.phoneRegex.test(phone);
-		let errorMessage = '';
-		this.formIsValidate.phone = isValidRegExp;
-
-		if (!isValidRegExp) {
-			errorMessage = 'Введите корректный номер';
-			this.inputPhone.style.outlineColor = '#ff0000ff';
-		} else {
-			this.inputPhone.style.outlineColor = '';
-		}
-
-		this.errorValidationShow = errorMessage.trim();
-		this.toggleButtonState();
-
-		return isValidRegExp;
-	}
-
-	getInputData(): IOrderContact {
-		return {
-			email: this.inputEmail.value,
-			phone: this.inputPhone.value,
-		};
+	clearForm() {
+		this.inputEmail.value = '';
+		this.inputPhone.value = '';
+		this.buttonSubmit.disabled = true;
 	}
 
 	render(): HTMLElement {
+		this.clearForm();
 		return this.formElement;
 	}
 }

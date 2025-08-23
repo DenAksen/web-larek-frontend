@@ -21,5 +21,7 @@ export abstract class Form {
 			: (this.buttonSubmit.disabled = true);
 	}
 
+	abstract clearForm(): void;
+
 	abstract render(): HTMLElement;
 }
