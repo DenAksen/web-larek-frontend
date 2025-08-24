@@ -14,6 +14,7 @@ import { FormOrder } from './components/view/formOrder';
 import { FormContact } from './components/view/formAddress';
 import { OrderSuccess } from './components/view/orderSuccess';
 import { CardPreview } from './components/view/cardPreview';
+import { BasketItem } from './components/view/basketCard';
 
 const api = new AppApi(API_URL, CDN_URL);
 const event = new EventEmitter();
@@ -21,12 +22,12 @@ const page = new Page(event);
 const model = new AppModel(event);
 const modal = new Modal(event);
 const basket = new Basket(event);
+const basketItem = new BasketItem(event);
 const formOrder = new FormOrder(event);
 const formContact = new FormContact(event);
 const orderSuccess = new OrderSuccess(event);
 const cardCatalog = new CardCatalog(event);
 const cardPreview = new CardPreview(event);
-
 
 async function init() {
 	model.itemList = await api.getItemList().then((products) => {
@@ -42,10 +43,16 @@ async function init() {
 init();
 
 event.on(AppEvents.BasketOpen, (): void => {
-	modal.render(basket.render(model.getBasketItems()));
+	modal.render(
+		basket.render(
+			model.getBasketItems().map((item, index) => {
+				return basketItem.createBasketItem(index + 1, item);
+			})
+		)
+	);
 });
 
-event.on(AppEvents.CardSelect, (payload: { id: string}) => {
+event.on(AppEvents.CardSelect, (payload: { id: string }) => {
 	const { id } = payload;
 	modal.render(
 		cardPreview.renderPreviewCardItem(
@@ -55,8 +62,8 @@ event.on(AppEvents.CardSelect, (payload: { id: string}) => {
 	);
 });
 
-event.on(AppEvents.CardAddBasket, (payload: { id: string}) => {
-	const { id} = payload;
+event.on(AppEvents.CardAddBasket, (payload: { id: string }) => {
+	const { id } = payload;
 	model.avilabilityInBasket(payload.id)
 		? model.basketRemove(payload.id)
 		: (model.basketAdd = payload.id);
@@ -85,11 +92,9 @@ event.on(AppEvents.BasketSubmit, () => {
 
 event.on(AppEvents.FormOrderSubmit, () => {
 	modal.render(formContact.render());
-	console.log(model.order) //Delete
 });
 
 event.on(AppEvents.FormContactSubmit, async () => {
-
 	try {
 		// Отправляем заказ
 		const isSuccess = await handlePostOrder(model.getOrderData());
@@ -120,32 +125,47 @@ event.on(AppEvents.OrderSuccessSubmit, () => {
 	basket.clearBasketItems();
 });
 
-event.on(AppEvents.ButtonChoosing, (payload: {payment: OrderPayment}) => {
+event.on(AppEvents.ButtonChoosing, (payload: { payment: OrderPayment }) => {
 	const { payment } = payload;
 	model.orderPaymentType = payload.payment;
 	formOrder.handleButtonPayChangeActive(payload.payment);
-})
+});
 
 event.on(AppEvents.FormOrderIsValid, () => {
 	formOrder.buttonSubmitChangeState(false);
-})
+});
 
 event.on(AppEvents.FormOrderIsNoValid, () => {
 	formOrder.buttonSubmitChangeState(true);
-})
-
-event.on(AppEvents.FormOrderInputAddressToValidation, (payload: {value: string}) => {
-	const { value } = payload;
-	formOrder.errorValidationShow = model.validateFormOrder(payload.value);
-	model.validateCheckFormOrder();
 });
+
+event.on(
+	AppEvents.FormOrderInputAddressToValidation,
+	(payload: { value: string }) => {
+		const { value } = payload;
+		formOrder.errorValidationShow = model.validateFormOrder(payload.value);
+		model.validateCheckFormOrder();
+	}
+);
 
 event.on(AppEvents.ModalClose, () => {
 	model.clearValidateFormCheck();
-})
-
-event.on(AppEvents.FormContactInputsToValidation, (payload: {valueInputEmail: string, valueInputPhone: string}) => {
-	const { valueInputEmail, valueInputPhone} = payload;
-	formContact.errorValidationShow = model.validateContact(payload.valueInputEmail, payload.valueInputPhone);
-	formContact.toggleValidationStyle(model.validateFormCheck.email, model.validateFormCheck.phone);
 });
+
+event.on(
+	AppEvents.FormContactInputsToValidation,
+	(payload: { valueInputEmail: string; valueInputPhone: string }) => {
+		const { valueInputEmail, valueInputPhone } = payload;
+		formContact.errorValidationShow = model.validateContact(
+			payload.valueInputEmail,
+			payload.valueInputPhone
+		);
+		formContact.toggleValidationStyle(
+			model.validateFormCheck.email,
+			model.validateFormCheck.phone
+		);
+	}
+);
+function indexOf(): number {
+	throw new Error('Function not implemented.');
+}

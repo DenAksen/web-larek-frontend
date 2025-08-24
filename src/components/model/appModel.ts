@@ -73,6 +73,7 @@ export class AppModel {
 
 	clearBasket(): void {
 		this._basketList = [];
+		this.events.emit(AppEvents.BasketChanged);
 	}
 
 	avilabilityInBasket(id: string): boolean {
@@ -93,9 +94,11 @@ export class AppModel {
 	}
 
 	getOrderData(): IOrder {
-		this.order.total = this._totalPrice;
-		this.order.items = this._basketList;
-		return this.order as IOrder;
+		return {
+			items: this._basketList,
+			total: this._totalPrice,
+			...this.order,
+		} as IOrder;
 	}
 
 	clearValidateFormCheck(): void {

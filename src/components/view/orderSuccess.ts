@@ -30,7 +30,7 @@ export class OrderSuccess {
 			e.preventDefault();
 			this.events.emit(AppEvents.OrderSuccessSubmit);
 		});
-		priceContainer.textContent = String(this._totalPrice);
+		priceContainer.textContent = `${String(this._totalPrice)} синапсов`;
 		return template;
 	}
 }

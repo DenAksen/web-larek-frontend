@@ -25,7 +25,7 @@ export class CardCatalog {
 		if (template) {
 			template.addEventListener('click', () => {
 				this.events.emit(AppEvents.CardSelect, {
-					id: data.id
+					id: data.id,
 				});
 			});
 		}
